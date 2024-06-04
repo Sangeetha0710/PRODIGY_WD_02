@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stopwatch Web Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .stopwatch-container {
+            width: 300px;
+            height: 300px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border: 5px solid #007bff;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .time-display {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .button-group {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 70px;
+            height: 70px;
+        }
+
+        button.start {
+            background-color: #26eb2d;
+            color: #fff;
+        }
+
+        button.start:hover {
+            background-color: #388e3c;
+        }
+
+        button.pause {
+            background-color: #ec291b;
+            color: #fff;
+        }
+
+        button.pause:hover {
+            background-color: #b10f0f;
+        }
+
+        button.reset {
+            background-color: #c327d1;
+            color: #fff;
+        }
+
+        button.reset:hover {
+            background-color: #9213a8;
+        }
+
+        button.lap {
+            background-color: #e7f034;
+            color: #fff;
+        }
+
+        button.lap:hover {
+            background-color: #cdc310;
+        }
+
+        .lap-list {
+            max-height: 100px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            width: 80%;
+            text-align: center;
+        }
+
+        .lap-item {
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="stopwatch-container">
+        <h1>Stopwatch</h1>
+        <div class="time-display" id="timeDisplay">00:00:00.000</div>
+        <div class="button-group">
+            <button class="start" id="startButton">Start</button>
+            <button class="pause" id="pauseButton">Pause</button>
+            <button class="reset" id="resetButton">Reset</button>
+            <button class="lap" id="lapButton">Lap</button>
+        </div>
+        <div class="lap-list" id="lapList"></div>
+    </div>
+
+    <script>
+        let startTime = 0;
+        let elapsedTime = 0;
+        let stopwatchInterval = null;
+
+        const timeDisplay = document.getElementById('timeDisplay');
+        const startButton = document.getElementById('startButton');
+        const pauseButton = document.getElementById('pauseButton');
+        const resetButton = document.getElementById('resetButton');
+        const lapButton = document.getElementById('lapButton');
+        const lapList = document.getElementById('lapList');
+
+        startButton.addEventListener('click', startStopwatch);
+        pauseButton.addEventListener('click', pauseStopwatch);
+        resetButton.addEventListener('click', resetStopwatch);
+        lapButton.addEventListener('click', recordLap);
+
+        function startStopwatch() {
+            if (!stopwatchInterval) {
+                startTime = Date.now() - elapsedTime;
+                stopwatchInterval = setInterval(updateTime, 10);
+            }
+        }
+
+        function pauseStopwatch() {
+            clearInterval(stopwatchInterval);
+            stopwatchInterval = null;
+        }
+
+        function resetStopwatch() {
+            clearInterval(stopwatchInterval);
+            stopwatchInterval = null;
+            elapsedTime = 0;
+            timeDisplay.textContent = '00:00:00.000';
+            lapList.innerHTML = '';
+        }
+
+        function updateTime() {
+            elapsedTime = Date.now() - startTime;
+            const time = calculateTime(elapsedTime);
+            timeDisplay.textContent = formatTime(time);
+        }
+
+        function calculateTime(time) {
+            const milliseconds = time % 1000;
+            const seconds = Math.floor(time / 1000) % 60;
+            const minutes = Math.floor(time / (1000 * 60)) % 60;
+            const hours = Math.floor(time / (1000 * 60 * 60));
+            return { hours, minutes, seconds, milliseconds };
+        }
+
+        function formatTime({ hours, minutes, seconds, milliseconds }) {
+            return padTime(hours) + ':' + padTime(minutes) + ':' + padTime(seconds) + '.' + padTime(milliseconds, 3);
+        }
+
+        function padTime(time, length = 2) {
+            let timeString = time.toString();
+            while (timeString.length < length) {
+                timeString = '0' + timeString;
+            }
+            return timeString;
+        }
+
+        function recordLap() {
+            const lapTime = timeDisplay.textContent;
+            const lapItem = document.createElement('div');
+            lapItem.className = 'lap-item';
+            lapItem.textContent = 'Lap: ' + lapTime;
+            lapList.appendChild(lapItem);
+        }
+        
+        const colors = ['#ff5722', '#8bc34a', '#03a9f4', '#e91e63', '#673ab7'];
+
+        
+        let currentColorIndex = 0;
+
+        
+        const container = document.querySelector('.stopwatch-container');
+
+        
+        function changeBorderColor() {
+        
+        container.style.borderColor = colors[currentColorIndex];
+
+        
+        currentColorIndex = (currentColorIndex + 1) % colors.length;
+        }
+        setInterval(changeBorderColor, 1000); 
+
+    </script>
+</body>
+</html>
